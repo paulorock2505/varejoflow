@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Resultados da Pesquisa{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <h2>Resultados da Pesquisa</h2>
+    {% if results %}
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tipo de Produto</th>
+                <th>Title</th>
+                <th>Marca</th>
+                <th>Data da Pesquisa</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for product in results %}
+            <tr>
+                <td>{{ product.id }}</td>
+                <td>{{ product.product_type }}</td>
+                <td>{{ product.title }}</td>
+                <td>{{ product.brand }}</td>
+                <td>{{ product.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>Nenhum resultado encontrado.</p>
+    {% endif %}
+</div>
+{% endblock %}

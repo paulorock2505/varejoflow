@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Resultados da Pesquisa{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Resultados da Pesquisa</h2>
+  {% if results %}
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Tipo de Produto</th>
+        <th>Data da Pesquisa</th>
+        <th>Title</th>
+        <th>Marca</th>
+        <th>Moeda</th>
+        <th>Preço</th>
+        <th>Imagem</th>
+        <th>Link</th>
+        <th>Detalhes Técnicos</th>
+        <th>Informações Adicionais</th>
+        <th>Sobre este item</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in results %}
+      <tr>
+        <td>{{ product.product_type }}</td>
+        <td>{{ product.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+        <td>{{ product.title }}</td>
+        <td>{{ product.brand }}</td>
+        <td>{{ product.currency }}</td>
+        <td>{{ product.price }}</td>
+        <td>
+          {% if product.image_url %}
+            <img src="{{ product.image_url }}" alt="{{ product.title }}" style="max-width: 80px;">
+          {% endif %}
+        </td>
+        <td>
+          {% if product.product_link %}
+            <a href="{{ product.product_link }}" target="_blank">Ver Produto</a>
+          {% endif %}
+        </td>
+        <td>{{ product.technical_details }}</td>
+        <td>{{ product.additional_info }}</td>
+        <td>{{ product.about_item }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p>Nenhum resultado encontrado.</p>
+  {% endif %}
+</div>
+{% endblock %}
