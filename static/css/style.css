@@ -1,0 +1,328 @@
+/* --- Configuração Global de Altura e Flexbox para Sticky Footer --- */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-family);
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+/* O contêiner principal ocupa o espaço restante */
+.wrapper, main, .content {
+  flex: 1;
+}
+
+/* --- Paleta de Cores (baseada na Logomarca) --- */
+:root {
+  /* Cores de Marca */
+  --color-brand-primary:        #0D1B2A; /* Azul muito escuro */
+  --color-brand-primary-light:  #142F45; /* +15% luminosidade */
+  --color-brand-primary-dark:   #0A131E; /* –15% luminosidade */
+
+  --color-brand-secondary:      #72375B; /* Dourado metálico */
+  --color-brand-secondary-light:#74365c; /* +15% */
+  --color-brand-secondary-dark: #754a65; /* –15% */
+
+  /* Backgrounds & Superfícies */
+  --color-bg:       var(--color-brand-primary);
+  --color-surface:  #39283b;
+  --color-border:   #705275;
+
+  /* Texto */
+  --color-text-primary:   #F9F9F9;
+  --color-text-secondary: #CCCCCC;
+  --color-text-inverse:   var(--color-brand-primary);
+
+  /* Semantic states */
+  --color-success: #28A745;
+  --color-info:    #17A2B8;
+  --color-warning: #FFC107;
+  --color-error:   #DC3545;
+
+  /* Aliases de compatibilidade */
+  --primary-color: var(--color-brand-primary);
+  --accent-color:  var(--color-brand-secondary);
+  --bg-color:      var(--color-bg);
+  --text-color:    var(--color-text-primary);
+
+  /* Layout */
+  --sidebar-expanded-width: 220px;
+  --sidebar-collapsed-width: 60px;
+  --transition-duration:    0.3s;
+  --font-family:            'Montserrat', sans-serif;
+  --logo-desktop-height:    120px;
+  --login-logo-height:      120px;
+  --logo-mobile-height:     40px;
+}
+
+/* --- Reset e Estilos Globais --- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* --- Sidebar (Desktop) --- */
+.wrapper {
+  display: flex;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: var(--sidebar-expanded-width);
+  background-color: var(--primary-color);
+  transition: transform var(--transition-duration) ease;
+  transform: translateX(0);
+}
+
+.sidebar.hidden {
+  transform: translateX(-100%);
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sidebar li {
+  position: relative;
+}
+
+.sidebar a {
+  display: flex;
+  align-items: center;
+  padding: 12px 10px;
+  color: var(--text-color);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--transition-duration);
+}
+
+.sidebar a:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar i {
+  font-size: 1.5rem;
+  min-width: 30px;
+  text-align: center;
+}
+
+/* --- Área da Marca na Sidebar --- */
+.sidebar-brand {
+  text-align: center;
+  padding: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0);
+  opacity: 1;
+  transition: opacity var(--transition-duration);
+}
+
+.sidebar.hidden .sidebar-brand {
+  opacity: 0;
+}
+
+.logo, .login-logo {
+  display: block;
+  margin: 0 auto 4px;
+}
+
+.logo {
+  height: var(--logo-desktop-height);
+  width: auto;
+}
+
+.login-logo {
+  height: var(--login-logo-height);
+  width: auto;
+}
+
+.brand-text {
+  font-size: 0.9rem;
+  color: var(--text-color);
+}
+
+/* --- Menu Text e Ícones --- */
+.menu-text {
+  margin-left: 8px;
+  transition: opacity var(--transition-duration);
+  color: var(--text-color);
+}
+
+.menu-icon {
+  color: var(--text-color);
+}
+
+/* --- Submenu na Sidebar --- */
+.submenu > a::after {
+  content: "▾";
+  margin-left: auto;
+  transition: transform var(--transition-duration);
+}
+
+.submenu:hover > a::after {
+  transform: rotate(180deg);
+}
+
+.child-menu {
+  display: none;
+  padding-left: 20px;
+  background-color: var(--primary-color);
+}
+
+.child-menu.show {
+  display: block;
+}
+
+/* --- Conteúdo Principal (Desktop) --- */
+.content {
+  margin-left: var(--sidebar-expanded-width);
+  padding: 20px;
+  width: 100%;
+  background-color: var(--color-surface);
+  transition: margin-left var(--transition-duration) ease;
+}
+
+/* Quando a sidebar estiver oculta, o conteúdo ocupa toda a largura */
+.sidebar.hidden ~ .content {
+  margin-left: 0;
+}
+
+/* --- Cabeçalho para a Tela de Login --- */
+.login-header {
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* --- Footer: Sempre na Parte Inferior --- */
+.footer {
+  background-color: var(--color-brand-primary-dark);
+  color: var(--color-text-primary);
+  padding: 15px 0;
+  margin-top: auto;
+  box-shadow: 0 -2px 4px rgba(0,0,0,0.2);
+}
+
+/* --- Mobile Navigation --- */
+@media (max-width: 767px) {
+  .mobile-nav {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50px;
+    background-color: #fff;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    z-index: 1000;
+  }
+  .mobile-nav .hamburger,
+  .mobile-nav .mobile-brand,
+  .mobile-menu a {
+    color: #fff;
+  }
+  .sidebar {
+    display: none;
+  }
+  main, .content {
+    margin-top: 60px;
+  }
+  .mobile-logo {
+    height: var(--logo-mobile-height);
+    width: auto;
+  }
+}
+
+/* --- Botão para expandir a sidebar --- */
+#sidebarShowBtn {
+  position: fixed;
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+  z-index: 1100;
+  display: none;
+}
+
+/* --- Botões e Cartões customizados --- */
+.card-header {
+  color: var(--text-color);
+  background-color: var(--primary-color);
+}
+
+.btn-amazon {
+  color: var(--text-color);
+  background-color: var(--accent-color);
+  border-radius: 10px;
+}
+
+.btn-amazon:hover {
+  color: var(--accent-color-dark); 
+  background-color: var(--color-text-primary);
+  border-color: transparent;
+}
+
+
+
+
+/* ----------------------------------------------------------------------
+   Botão de Login (tela de autenticação)
+   ---------------------------------------------------------------------- */
+.btn-primary,
+input[type="submit"] {
+  background-color: var(--accent-color);
+  color: var(--color-brand-primary) !important;
+  border: none;
+}
+
+.btn-primary:hover,
+input[type="submit"]:hover,
+.btn-primary:focus,
+input[type="submit"]:focus {
+  background-color: #27374d;
+  color: var(--color-brand-primary) !important;
+  outline: none;
+  box-shadow: 0 0 0 0.2rem rgba(95, 69, 154, 0);
+}
+
+.btn-outline-primary {
+  color: var(--accent-color);
+  border-color: var(--accent-color);
+}
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+  background-color: var(--accent-color);
+  color: var(--color-brand-primary);
+  border-color: var(--accent-color);
+}
+
+/* --- Força texto branco em todos os botões, inclusive no hover --- */
+button,
+.btn,
+input[type="submit"],
+input[type="button"],
+.btn-primary,
+.btn-amazon {
+  color: #fff !important;
+}
+
+button:hover,
+.btn:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover,
+.btn-primary:hover,
+.btn-amazon:hover {
+  color: #fff !important;
+}
