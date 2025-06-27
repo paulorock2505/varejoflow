@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Meus Produtos - Amazon{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <!-- A sidebar já deve estar incluída no base.html -->
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+      <h1 class="mt-4">Lista de Produtos</h1>
+      
+      <!-- Formulário para filtrar por lista e data -->
+      <form method="GET" action="{{ url_for('amazon.list_products') }}" class="form-row mb-4">
+        <div class="col-auto">
+          <label for="list_name" class="mr-2 font-weight-bold">Lista:</label>
+          <select name="list_name" id="list_name" class="custom-select" onchange="this.form.submit()">
+            <option value="">Todas as Listas</option>
+            {% for list_item in list_names %}
+              <option value="{{ list_item }}" {% if list_item == selected_list %}selected{% endif %}>
+                {{ list_item }}
+              </option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-auto">
+          <label for="date" class="mr-2 font-weight-bold">Data:</label>
+          <input type="date" name="date" id="date" class="form-control" value="{{ selected_date or '' }}" onchange="this.form.submit()">
+        </div>
+        <div class="col-auto d-none d-md-block">
+          <noscript>
+            <button type="submit" class="btn btn-primary mt-4">Filtrar</button>
+          </noscript>
+        </div>
+      </form>
+      
+      <!-- Tabela de Produtos -->
+      <div class="table-responsive">
+        <table class="table table-striped table-hover">
+          <thead class="thead-dark">
+            <tr>
+              <th>ID</th>
+              <th>Título</th>
+              <th>Marca</th>
+              <th>Preço</th>
+              <th>Data de Criação</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for product in products %}
+              <tr>
+                <td>{{ product.id }}</td>
+                <td>{{ product.title }}</td>
+                <td>{{ product.brand }}</td>
+                <td>{{ product.price }}</td>
+                <td>{{ product.created_at.strftime("%Y-%m-%d %H:%M:%S") }}</td>
+                <td>
+                  <a href="{{ url_for('amazon.edit_product', product_id=product.id) }}" class="btn btn-sm btn-primary">Editar</a>
+                  <form action="{{ url_for('amazon.delete_product', product_id=product.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza de que deseja excluir este produto?');">
+                    <button type="submit" class="btn btn-sm btn-danger">Excluir</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+</div>
+{% endblock %}

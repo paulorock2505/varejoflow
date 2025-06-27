@@ -1,0 +1,375 @@
+{% extends "base.html" %}
+{% block title %}Buscar na Amazon{% endblock %}
+{% block content %}
+
+<!-- Overlay de carregamento -->
+<div id="loadingOverlay" style="display: none;">
+  <div class="overlay-content">
+    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo Techrider">
+    <h3><b>Aguarde, estamos processando a sua busca...</b></h3>
+  </div>
+</div>
+
+<!-- Estilos para o overlay e para o menu lateral fixo (com responsividade) -->
+<style>
+  /* Overlay de carregamento */
+  #loadingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(13, 27, 42, 0.909);
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .overlay-content {
+    text-align: center;
+    color: #a7698f;
+    text-shadow: 0px, 0px, 10px, #000;
+  }
+  .overlay-content img {
+    width: 240px;
+    height: auto;
+    animation: pulse 1.5s infinite;
+  }
+
+  /* Deixa o card-body transparente */
+.card.shadow-sm .card-body {
+  background-color: transparent !important;
+}
+
+
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  /* Comportamento responsivo para dispositivos móveis */
+  @media (max-width: 768px) {
+    .right-sidebar {
+      position: fixed;
+      bottom: 0;
+      right: 0;
+      width: 100%;
+      max-height: 50%;
+      border-left: none;
+      border-top: 1px solid #ddd;
+      padding: 10px;
+      display: none;
+      background-color: #f8f9fa;
+    }
+    .right-sidebar.active {
+      display: block;
+    }
+    #sidebarToggle {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      z-index: 1100;
+      display: block;
+    }
+  }
+</style>
+
+<div class="row">
+  <!-- Área principal: formulário de busca -->
+  <div class="col-md-9">
+    <div class="card shadow-sm mt-4">
+      <div class="card-header">
+        <h3 class="card-title mb-0">Buscar Produtos na Amazon</h3>
+      </div>
+      <div class="card-body">
+        <form id="searchForm" method="post" novalidate>
+          <div id="search-container">
+            <div class="search-group mb-3 border p-3 rounded">
+              <!-- Campo para Nome da Lista (dentro de cada grupo) -->
+              <div class="mb-3">
+                <label for="list-name-0" class="form-label">Nome da Lista:</label>
+                <input type="text" class="form-control" id="list-name-0" name="list_name_group[]" placeholder="Ex.: Notebook">
+              </div>
+              <div class="mb-3">
+                <label for="generic-0" class="form-label">Termo de Busca (Genérico):</label>
+                <input type="text" class="form-control" id="generic-0" name="generic[]" placeholder="Ex.: Notebook" required>
+              </div>
+              <div class="mb-3">
+                <label for="tag-0" class="form-label">Tag de Afiliado (Opcional):</label>
+                <input type="text" class="form-control" id="tag-0" name="tag[]" placeholder="Ex.: techrider-20">
+              </div>
+              <div class="mb-3">
+                <label for="models-0" class="form-label">Modelos (Opcional, uma por linha):</label>
+                <textarea class="form-control" id="models-0" name="models[]" rows="4" placeholder="Digite um modelo por linha"></textarea>
+              </div>
+              <!-- Botões: Remover, Limpar e Adicionar Lista (lado a lado) -->
+              <div class="d-flex justify-content-end">
+                <button type="button" class="btn btn-danger remove-group me-2">Remover</button>
+                <button type="button" class="btn btn-warning clear-group me-2">Limpar</button>
+                <button type="button" class="btn btn-success add-list-group">Adicionar Lista</button>
+              </div>
+            </div>
+          </div>
+          <!-- Botão para adicionar novo grupo de busca -->
+          <button type="button" id="addGroup" class="btn btn-secondary mb-3">Adicionar mais itens</button>
+          <div class="d-grid">
+            <button type="submit" class="btn btn-primary">Buscar Produtos</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+ 
+</div>
+
+<!-- Botão toggle para dispositivos móveis -->
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const searchContainer = document.getElementById('search-container');
+  const addGroupButton = document.getElementById('addGroup');
+  const rightSidebar = document.getElementById("rightSidebar");
+  const sidebarToggle = document.getElementById("sidebarToggle");
+  const searchForm = document.getElementById("searchForm");
+  
+  // Exibe o botão toggle em telas pequenas
+  if (window.innerWidth <= 768) {
+    sidebarToggle.classList.remove('d-none');
+  }
+  
+  // Carrega as listas salvas do perfil do usuário via AJAX
+  fetch('/amazon/get_saved_lists')
+    .then(response => response.json())
+    .then(data => {
+      if(data.saved_lists){
+        const savedLists = document.getElementById('savedLists');
+        data.saved_lists.forEach(function(listName){
+          // Evita duplicação se já existir
+          let exists = false;
+          savedLists.querySelectorAll('li').forEach(function(item) {
+            if(item.querySelector('span').textContent.trim() === listName) {
+              exists = true;
+            }
+          });
+          if (!exists) {
+            const li = document.createElement('li');
+            li.className = "list-group-item d-flex justify-content-between align-items-center";
+            const span = document.createElement('span');
+            span.textContent = listName;
+            li.appendChild(span);
+            const removeLiBtn = document.createElement('button');
+            removeLiBtn.type = "button";
+            removeLiBtn.className = "btn btn-danger btn-sm";
+            removeLiBtn.textContent = "X";
+            removeLiBtn.addEventListener('click', function() {
+              // Opcional: Remover do DOM e fazer DELETE via AJAX se necessário
+              li.remove();
+            });
+            li.appendChild(removeLiBtn);
+            savedLists.appendChild(li);
+          }
+        });
+      }
+    })
+    .catch(error => console.error(error));
+  
+  // Overlay de carregamento: exibir overlay ao enviar o formulário
+  searchForm.addEventListener('submit', function() {
+    document.getElementById('loadingOverlay').style.display = 'flex';
+  });
+  
+  // Atualiza os IDs dos inputs de cada grupo
+  function updateGroupIds() {
+    const groups = document.querySelectorAll('.search-group');
+    groups.forEach((group, index) => {
+      group.querySelector('input[name="generic[]"]').id = 'generic-' + index;
+      group.querySelector('input[name="tag[]"]').id = 'tag-' + index;
+      group.querySelector('textarea[name="models[]"]').id = 'models-' + index;
+      group.querySelector('input[name="list_name_group[]"]').id = 'list-name-' + index;
+    });
+  }
+  
+  // Anexa os eventos em cada grupo
+  function attachGroupEvents(group) {
+    // Botão Remover
+    const removeBtn = group.querySelector('.remove-group');
+    removeBtn.addEventListener('click', function() {
+      if(document.querySelectorAll('.search-group').length > 1) {
+        group.remove();
+      } else {
+        alert("Você deve manter pelo menos um campo de busca.");
+      }
+    });
+    // Botão Limpar
+    const clearBtn = group.querySelector('.clear-group');
+    clearBtn.addEventListener('click', function() {
+      group.querySelectorAll('input, textarea').forEach(function(el) {
+        el.value = '';
+      });
+    });
+    // Botão Adicionar Lista: salva a lista via AJAX e adiciona na sidebar
+    const addListBtn = group.querySelector('.add-list-group');
+    addListBtn.addEventListener('click', function() {
+      const listInput = group.querySelector('input[name="list_name_group[]"]');
+      const listName = listInput.value.trim();
+      if(listName === "") {
+        alert("Informe o nome da lista para adicionar.");
+        return;
+      }
+      // Chamada AJAX para salvar a lista no perfil do usuário
+      fetch('/amazon/save_list', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ list_name: listName })
+      })
+      .then(response => response.json())
+      .then(data => {
+        // Se a lista foi salva (ou já existia), adiciona na sidebar
+        if(data.message || data.message === "Lista já existe.") {
+          const savedLists = document.getElementById('savedLists');
+          let exists = false;
+          savedLists.querySelectorAll('li').forEach(function(item) {
+            if(item.querySelector('span').textContent.trim() === listName) {
+              exists = true;
+            }
+          });
+          if(!exists) {
+            const li = document.createElement('li');
+            li.className = "list-group-item d-flex justify-content-between align-items-center";
+            const span = document.createElement('span');
+            span.textContent = listName;
+            li.appendChild(span);
+            const removeLiBtn = document.createElement('button');
+            removeLiBtn.type = "button";
+            removeLiBtn.className = "btn btn-danger btn-sm";
+            removeLiBtn.textContent = "X";
+            removeLiBtn.addEventListener('click', function() {
+              li.remove();
+              // Opcional: fazer uma chamada AJAX para remover a lista do perfil
+            });
+            li.appendChild(removeLiBtn);
+            savedLists.appendChild(li);
+          }
+        } else if(data.error) {
+          alert(data.error);
+        }
+      })
+      .catch(error => console.error(error));
+    });
+  }
+  
+  // Inicialização para os grupos existentes
+  document.querySelectorAll('.search-group').forEach(function(group) {
+    attachGroupEvents(group);
+  });
+  
+  // Adiciona novo grupo
+  addGroupButton.addEventListener('click', function() {
+    const firstGroup = document.querySelector('.search-group');
+    const newGroup = firstGroup.cloneNode(true);
+    newGroup.querySelectorAll('input, textarea').forEach(function(el) {
+      el.value = '';
+    });
+    searchContainer.appendChild(newGroup);
+    updateGroupIds();
+    attachGroupEvents(newGroup);
+  });
+  
+  // Toggle do menu lateral em dispositivos móveis
+  sidebarToggle.addEventListener('click', function() {
+    rightSidebar.classList.toggle('active');
+  });
+  
+  window.addEventListener('resize', function() {
+    if(window.innerWidth > 768) {
+      sidebarToggle.classList.add('d-none');
+      rightSidebar.classList.add('active');  // Sempre visível em desktop
+    } else {
+      sidebarToggle.classList.remove('d-none');
+      rightSidebar.classList.remove('active'); // Oculto inicialmente em mobile
+    }
+  });
+  
+  // Botão Adicionar Lista: salva os dados completos do grupo via AJAX
+  const group = document.querySelector('.search-group'); // assumindo que existe um grupo
+  const addListBtn = group.querySelector('.add-list-group');
+  addListBtn.addEventListener('click', function() {
+    const listInput = group.querySelector('input[name="list_name_group[]"]');
+    const genericInput = group.querySelector('input[name="generic[]"]');
+    const tagInput = group.querySelector('input[name="tag[]"]');
+    const modelsInput = group.querySelector('textarea[name="models[]"]');
+    
+    const listName = listInput.value.trim();
+    const genericTerm = genericInput ? genericInput.value.trim() : "";
+    const tag = tagInput ? tagInput.value.trim() : "";
+    const models = modelsInput ? modelsInput.value.trim() : "";
+    
+    if(listName === "") {
+      alert("Informe o nome da lista para adicionar.");
+      return;
+    }
+    
+    // Envia os dados completos via AJAX
+    fetch('/amazon/save_list', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ 
+        list_name: listName, 
+        generic: genericTerm, 
+        tag: tag, 
+        models: models 
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if(data.message || data.message === "Lista já existe.") {
+        const savedLists = document.getElementById('savedLists');
+        let exists = false;
+        savedLists.querySelectorAll('li').forEach(function(item) {
+          if(item.querySelector('span').textContent.trim() === listName) {
+            exists = true;
+          }
+        });
+        if(!exists) {
+          const li = document.createElement('li');
+          li.className = "list-group-item d-flex justify-content-between align-items-center";
+          const span = document.createElement('span');
+          span.textContent = listName;
+          li.appendChild(span);
+          const removeLiBtn = document.createElement('button');
+          removeLiBtn.type = "button";
+          removeLiBtn.className = "btn btn-danger btn-sm";
+          removeLiBtn.textContent = "X";
+          removeLiBtn.addEventListener('click', function() {
+            li.remove();
+            // Opcional: enviar uma requisição para remover a lista do DB
+          });
+          li.appendChild(removeLiBtn);
+          savedLists.appendChild(li);
+        }
+      } else if(data.error) {
+        alert(data.error);
+      }
+    })
+    .catch(error => console.error(error));
+  });
+
+  // Chamada para atualizar a sessão do usuário com dados recentes
+  // Essa requisição chama uma rota que você deve implementar no backend (ex: '/auth/update_session'),
+  // a qual lê os dados atualizados do usuário e atualiza as variáveis da sessão.
+  fetch('/auth/update_session', { method: 'POST' })
+    .then(response => response.json())
+    .then(data => {
+      console.log("Sessão atualizada:", data);
+    })
+    .catch(error => console.error("Erro ao atualizar a sessão:", error));
+});
+</script>
+{% endblock %}
