@@ -1,0 +1,33 @@
+services:
+  db:
+    image: postgres:15
+    mem_limit: 512m
+    memswap_limit: 1024g
+    container_name: varejoflow_db
+    environment:
+      POSTGRES_USER: postres
+      POSTGRES_PASSWORD: P4ul0L31t3
+      POSTGRES_DB: omnirider
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  web:
+    build: .
+    command: >
+      gunicorn app:app
+        --worker-class gevent
+        --workers 4
+        --timeout 120
+        --bind 0.0.0.0:8000
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://user:pass@db:5432/varejoflow
+    volumes:
+      - ./:/app
+
+volumes:
+  db_data:
+

@@ -1,0 +1,18 @@
+flask
+gunicorn
+psycopg2-binary
+sqlalchemy
+flask_sqlalchemy
+flask_session
+beautifulsoup4
+selenium
+playwright
+#gevent>=22.10.2
+# ou, se preferir:
+eventlet>=0.33.3
+Flask-APScheduler>=1.13.1
+APScheduler>=3.10.0
+gevent>=21.0.0
+
+
+
