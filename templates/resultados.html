@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Resultados (CSV){% endblock %}
+{% block content %}
+<h2>Planilhas Geradas na Data: {{ data }}</h2>
+{% if csv_files %}
+  <ul class="list-group">
+    {% for file in csv_files %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        {{ file.filename.split('/')[-1] }}
+        <a href="{{ url_for('download_csv') }}?file={{ file.filename }}" class="btn btn-primary btn-sm">Baixar</a>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>Nenhuma planilha gerada nesta data.</p>
+{% endif %}
+{% endblock %}

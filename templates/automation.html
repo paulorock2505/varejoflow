@@ -1,0 +1,303 @@
+{# templates/automation.html #}
+{% extends "base.html" %}
+{% block title %}Automações{% endblock %}
+
+{% block extra_css %}
+  {{ super() }}
+  <!-- Flatpickr & FullCalendar CSS -->
+  <link
+    href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    rel="stylesheet"/>
+  <link
+    href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.5/index.global.min.css"
+    rel="stylesheet"/>
+  <link
+    href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.5/bootstrap/main.min.css"
+    rel="stylesheet"/>
+
+  <style>
+    /* abas com texto preto */
+    .nav-tabs .nav-link {
+      color: #fff !important;
+    }
+    .nav-tabs .nav-link.active {
+      color: #000 !important;
+      background-color: #fff !important;
+    }
+    /* redefine bg-primary para o tom #0A131E */
+    .bg-primary {
+      background-color: #0A131E !important;
+      border-color: #0A131E !important;
+    }
+    /* títulos brancos em card headers com bg-primary */
+    .card-header.bg-primary .card-title {
+      color: #fff !important;
+    }
+  </style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+  <!-- Nav tabs -->
+  <ul class="nav nav-tabs" id="autoTabs" role="tablist">
+    <li class="nav-item">
+      <button class="nav-link active" id="tab-schedule" data-bs-toggle="tab"
+              data-bs-target="#schedule" type="button" role="tab">
+        Agendar Busca
+      </button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" id="tab-calendar" data-bs-toggle="tab"
+              data-bs-target="#calendar" type="button" role="tab">
+        Calendário
+      </button>
+    </li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- ABA AGENDAR BUSCA -->
+    <div class="tab-pane fade show active" id="schedule" role="tabpanel">
+      <div id="loadingOverlay" style="display: none;">
+        <div class="overlay-content">
+          <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+          <h3><b>Aguarde, processando sua busca...</b></h3>
+        </div>
+      </div>
+
+      <style>
+        #loadingOverlay {
+          position: fixed; top:0; left:0;
+          width:100%; height:100%;
+          background: rgba(13,27,42,0.9);
+          display:flex; align-items:center; justify-content:center;
+          z-index:3000;
+        }
+        .overlay-content { text-align:center; color:#a7698f; }
+        .overlay-content img { width:200px; animation:pulse 1.5s infinite; }
+        @keyframes pulse {
+          0%   {transform:scale(1);   opacity:1;}
+          50%  {transform:scale(1.1); opacity:0.7;}
+          100% {transform:scale(1);   opacity:1;}
+        }
+      </style>
+
+      <div class="row">
+        <div class="col-md-9">
+          <div class="card shadow-sm mt-4">
+            <div class="card-header bg-primary">
+              <h3 class="card-title mb-0">Buscar Produtos na Amazon</h3>
+            </div>
+            <div class="card-body">
+              <form id="searchForm"
+                    method="post"
+                    action="{{ url_for('automation.schedule') }}"
+                    novalidate>
+
+                <!-- Campos Dinâmicos de Lista -->
+                <div id="search-container">
+                  <div class="search-group mb-3 border p-3 rounded">
+                    <div class="mb-3">
+                      <label for="list-name-0" class="form-label">Nome da Lista:</label>
+                      <input type="text"
+                             class="form-control"
+                             id="list-name-0"
+                             name="list_name_group[]"
+                             placeholder="Ex.: Notebook">
+                    </div>
+                    <div class="mb-3">
+                      <label for="generic-0" class="form-label">Termo de Busca:</label>
+                      <input type="text"
+                             class="form-control"
+                             id="generic-0"
+                             name="generic[]"
+                             placeholder="Ex.: Notebook"
+                             required>
+                    </div>
+                    <div class="mb-3">
+                      <label for="tag-0" class="form-label">Tag de Afiliado (Opcional):</label>
+                      <input type="text"
+                             class="form-control"
+                             id="tag-0"
+                             name="tag[]"
+                             placeholder="Ex.: techrider02-20">
+                    </div>
+                    <div class="mb-3">
+                      <label for="models-0" class="form-label">Modelos (uma por linha):</label>
+                      <textarea class="form-control"
+                                id="models-0"
+                                name="models[]"
+                                rows="4"
+                                placeholder="Digite um modelo por linha"></textarea>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                      <button type="button" class="btn btn-danger remove-group me-2">
+                        Remover
+                      </button>
+                      <button type="button" class="btn btn-warning clear-group me-2">
+                        Limpar
+                      </button>
+                      <button type="button" class="btn btn-success add-list-group">
+                        Salvar Lista
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                <button type="button" id="addGroup" class="btn btn-secondary mb-3">
+                  Adicionar mais itens
+                </button>
+
+                <!-- Configurar Agendamento -->
+                <div class="card mt-4">
+                  <div class="card-header bg-primary">
+                    <h5 class="mb-0">Configurar Agendamento</h5>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-3">
+                      <div class="col-md-4">
+                        <label for="schedule-date" class="form-label">Data</label>
+                        <input type="text"
+                               class="form-control"
+                               id="schedule-date"
+                               name="schedule_date"
+                               placeholder="YYYY-MM-DD">
+                      </div>
+                      <div class="col-md-4">
+                        <label for="schedule-time" class="form-label">Horário (HH:MM)</label>
+                        <input type="text"
+                               class="form-control"
+                               id="schedule-time"
+                               name="schedule_time"
+                               placeholder="HH:MM">
+                      </div>
+                      <div class="col-md-4 d-flex align-items-end">
+                        <div class="form-check">
+                          <input class="form-check-input"
+                                 type="checkbox"
+                                 id="everyday"
+                                 name="everyday"
+                                 value="1">
+                          <label class="form-check-label" for="everyday">
+                            Todos os Dias
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="d-grid mt-4">
+                  <button type="submit" class="btn btn-primary">Agendar Busca</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+     <!-- CALENDÁRIO -->
+    <div class="tab-pane fade" id="calendar" role="tabpanel">
+      <div class="row left">
+        <div class="col-12 col-md-9">
+          <div class="card shadow-sm mt-4">
+            <div class="card-header bg-primary">
+              <h3 class="card-title mb-0">Calendário de Automações</h3>
+            </div>
+            <div class="card-body">
+              <div id="fc" class="fc-theme-bootstrap"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+  {{ super() }}
+  <!-- Flatpickr & FullCalendar JS -->
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.5/index.global.min.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      // Flatpickr
+      flatpickr("#schedule-date", {
+        dateFormat: "Y-m-d", minDate: "today", allowInput: true
+      });
+      flatpickr("#schedule-time", {
+        enableTime: true, noCalendar: true,
+        dateFormat: "H:i", time_24hr: true, allowInput: true
+      });
+
+      // Toggle data disable
+      const dateInput = document.getElementById('schedule-date'),
+            everydayChk = document.getElementById('everyday');
+      everydayChk.addEventListener('change', () => {
+        dateInput.disabled = everydayChk.checked;
+        if (everydayChk.checked) dateInput.value = '';
+      });
+
+      // Prepare FullCalendar
+      const calendar = new FullCalendar.Calendar(
+        document.getElementById('fc'),
+        {
+          themeSystem: 'bootstrap',
+          initialView: 'dayGridMonth',
+          height: 'auto',
+          locale: 'pt-br',
+          headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+          },
+          views: {
+            dayGridMonth: { buttonText: 'Mês' },
+            timeGridWeek: { buttonText: 'Semana' },
+            timeGridDay:  { buttonText: 'Dia' },
+            listWeek:     { buttonText: 'Lista' }
+          },
+          navLinks: true,
+          nowIndicator: true,
+          dayMaxEvents: true,
+          noEventsContent: 'Nenhuma automação neste período',
+          events: {
+            url: "{{ url_for('automation.api_jobs') }}",
+            method: 'GET',
+            failure: () => alert("Falha ao carregar automações"),
+            eventDataTransform: function(eventData) {
+              const now = new Date(),
+                    start = new Date(eventData.start);
+              eventData.backgroundColor =
+                eventData.executed  ? "#90EE90" :
+                (start <= now)     ? "#FFFACD" :
+                                     "#9370DB";
+              eventData.title = eventData.list_name || eventData.title;
+              return eventData;
+            }
+          },
+          eventClick: function(info){
+            if (!confirm(`Remover automação "${info.event.title}"?`))
+              return;
+            fetch(`/automation/api/jobs/${info.event.id}`, { method:'DELETE' })
+              .then(r => r.ok ? r.json() : Promise.reject())
+              .then(js=> { alert(js.message); info.event.remove(); })
+              .catch(()=> alert("Não foi possível remover a automação."));
+          }
+        }
+      );
+
+      // Render now so it instantiates
+      calendar.render();
+
+      // Re-render when tab is shown to fix layout
+      document.getElementById('tab-calendar')
+        .addEventListener('shown.bs.tab', () => {
+          calendar.render();
+        });
+    });
+  </script>
+{% endblock %}

@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}VarejoFlow{% endblock %}</title>
+  
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <!-- Google Fonts: Montserrat -->
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+  {% block extra_css %}
+  <style>
+    :root {
+      --sidebar-expanded-width: 250px;
+      --sidebar-collapsed-width: 80px;
+      --transition-duration: 0.3s;
+      --logo-collapsed-height: 40px;
+    }
+
+    /* Ajuste dos ícones do menu */
+    .menu-icon {
+      width: 20px !important;
+      height: 20px !important;
+      vertical-align: middle;
+      margin-right: 5px;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100%;
+      width: var(--sidebar-expanded-width);
+      background-color: var(--primary-color);
+      transition: width var(--transition-duration) ease;
+      overflow: hidden;
+    }
+    .sidebar.collapsed {
+      width: var(--sidebar-collapsed-width);
+    }
+    .sidebar.collapsed .menu-text {
+      display: none;
+    }
+    .sidebar.collapsed .sidebar-brand {
+      text-align: center;
+      padding: 10px 0;
+    }
+    .sidebar.collapsed .sidebar-brand .logo {
+      height: var(--logo-collapsed-height);
+      width: auto;
+      margin: 0 auto;
+      transition: height var(--transition-duration) ease;
+    }
+    .content {
+      margin-left: var(--sidebar-expanded-width);
+      transition: margin-left var(--transition-duration) ease;
+    }
+    .sidebar.collapsed ~ .content {
+      margin-left: var(--sidebar-collapsed-width);
+    }
+    #sidebarShowBtn {
+      position: fixed;
+      top: 50%; left: 10px;
+      transform: translateY(-50%);
+      z-index: 1100;
+      display: none;
+    }
+    @media (max-width: 767px) {
+      .sidebar { display: none; }
+      .content { margin-left: 0; }
+      #sidebarShowBtn { display: none; }
+      .navbar-nav .nav-link { color: #fff !important; }
+      .navbar-nav .nav-link:hover,
+      .navbar-nav .nav-link:focus { color: #ddd !important; }
+    }
+    #sidebarHideBtn i.bi-arrow-left-circle-fill,
+    #sidebarShowBtn i.bi-arrow-right-circle-fill {
+      background-color: transparent !important;
+      border: none;
+      color: #fff;
+    }
+  </style>
+  {% endblock %}
+</head>
+<body>
+  {% if session.get("logged_in") %}
+    <!-- Mobile Navbar -->
+    <nav class="navbar navbar-expand-md d-block d-md-none" style="background-color: var(--primary-color);">
+      <div class="container-fluid">
+        <a class="navbar-brand" href="{{ url_for('main.index') }}">
+          <img src="{{ url_for('static', filename='images/logo.png') }}" alt="VarejoFlow" class="mobile-logo">
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#mobileNavbar" aria-controls="mobileNavbar"
+                aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="mobileNavbar">
+          <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('main.index') }}">Home</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" id="mobileDropdown"
+                 role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                Buscador
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="mobileDropdown">
+                {% if session.get("perm_amazon") %}
+                  <li><a class="dropdown-item" href="{{ url_for('amazon.amazon_search') }}">Amazon - Pesquisar</a></li>
+                  <li><a class="dropdown-item" href="{{ url_for('amazon.export_csv') }}">Amazon - Exportar</a></li>
+                  <li><a class="dropdown-item" href="{{ url_for('amazon.dashboard') }}">Amazon - Gráficos</a></li>
+                  <li><a class="dropdown-item" href="{{ url_for('automation.view') }}"></i>Automações</a></li>
+                {% endif %}
+              </ul>
+            </li>
+            {% if session.get("is_admin") %}
+              <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('admin.list_users') }}">Admin</a>
+              </li>
+            {% endif %}
+            <li class="nav-item">
+              <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+    
+    <!-- Desktop Sidebar -->
+    <nav class="sidebar d-md-block" id="desktopSidebar">
+      <div class="sidebar-brand">
+        <a href="{{ url_for('main.index') }}">
+          <img src="{{ url_for('static', filename='images/logo.png') }}" alt="VarejoFlow" class="logo">
+        </a>
+      </div>
+      <ul>
+        <li>
+          <a href="{{ url_for('main.index') }}">
+            <i class="bi bi-house"></i>
+            <span class="menu-text">Home</span>
+          </a>
+        </li>
+        <!-- Buscador -->
+        <li class="submenu">
+          <a href="#" id="buscadorToggle" data-bs-toggle="collapse"
+             data-bs-target="#buscadorSubmenu" aria-expanded="true">
+            <i class="bi bi-search"></i>
+            <span class="menu-text">Buscador</span>
+          </a>
+          <ul class="collapse show child-menu" id="buscadorSubmenu">
+            {% if session.get("perm_amazon") %}
+              <li class="submenu">
+                <a href="#" id="amazonToggleLink" data-bs-toggle="collapse"
+                   data-bs-target="#amazonSubmenu" aria-expanded="false">
+                  <img src="{{ url_for('static', filename='svg/amazon_icon.ico') }}"
+                       alt="Amazon" class="menu-icon">
+                  <span class="menu-text">Amazon</span>
+                </a>
+                <ul class="collapse child-menu" id="amazonSubmenu">
+                  <li>
+                    <a href="{{ url_for('amazon.amazon_search') }}">
+                      <img src="{{ url_for('static', filename='svg/search_engine.ico') }}"
+                           alt="Pesquisar" class="menu-icon">
+                      <span class="menu-text">Pesquisar</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="{{ url_for('amazon.export_csv') }}">
+                      <img src="{{ url_for('static', filename='svg/export.ico') }}"
+                           alt="Exportar" class="menu-icon">
+                      <span class="menu-text">Exportar</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="{{ url_for('amazon.dashboard') }}">
+                      <img src="{{ url_for('static', filename='svg/graphic.ico') }}"
+                           alt="Gráficos" class="menu-icon">
+                      <span class="menu-text">Gráficos</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="{{ url_for('amazon.list_products') }}">
+                      <img src="{{ url_for('static', filename='svg/edit.ico') }}"
+                           alt="Editar Produtos" class="menu-icon">
+                      <span class="menu-text">Editar Produtos</span>
+                    </a>
+                  <li>
+                    <a href="{{ url_for('automation.view') }}">
+                      <img src="{{ url_for('static', filename='svg/robo.ico') }}"
+                           alt="Automação" class="menu-icon">
+                      <span class="menu-text">Automações</span>
+                    </a>
+                  </li>
+                  </li>
+                </ul>
+              </li>
+            {% endif %}
+          </ul>
+        </li>
+        <!-- Automações -->
+        
+        {% if session.get("is_admin") %}
+          <li>
+            <a href="{{ url_for('admin.list_users') }}">
+              <i class="bi bi-gear"></i>
+              <span class="menu-text">Admin</span>
+            </a>
+          </li>
+        {% endif %}
+        <li>
+          <a href="{{ url_for('auth.logout') }}">
+            <i class="bi bi-box-arrow-right"></i>
+            <span class="menu-text">Logout</span>
+          </a>
+        </li>
+      </ul>
+      <!-- Botões para recolher/mostrar sidebar -->
+      <button id="sidebarHideBtn" class="btn btn-secondary btn-sm"
+              style="position:absolute;bottom:20px;left:50%;transform:translateX(-50%);">
+        <i class="bi bi-arrow-left-circle-fill"></i>
+      </button>
+    </nav>
+    
+    <!-- Botão para exibir sidebar recolhida -->
+    <button id="sidebarShowBtn" class="btn btn-secondary btn-sm"
+            style="position:fixed;top:50%;left:10px;transform:translateY(-50%);z-index:1100;display:none;">
+      <i class="bi bi-arrow-right-circle-fill"></i>
+    </button>
+    
+    {% set wrapper_start = '<div class="content">' %}
+    {% set wrapper_end   = '</div>' %}
+  {% else %}
+    {% set wrapper_start = '<header class="login-header text-center my-4"><img src="'
+       ~ url_for("static", filename="images/logo.png")
+       ~ '" alt="VarejoFlow" class="login-logo"></header>'
+       ~ '<main class="container my-4">'
+    %}
+    {% set wrapper_end = '</main>' %}
+  {% endif %}
+
+  {{ wrapper_start | safe }}
+    {% block content %}{% endblock %}
+  {{ wrapper_end | safe }}
+
+  <!-- Footer -->
+  <footer class="footer text-center">
+    <div class="container">
+      <p>&copy; {{ current_year|default("2025") }} VarejoFlow. Todos os direitos reservados.</p>
+    </div>
+  </footer>
+
+  <!-- Bootstrap 5 JS Bundle -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  {% block extra_js %}
+  <script>
+    document.addEventListener("DOMContentLoaded", function(){
+      const sidebarHideBtn = document.getElementById("sidebarHideBtn");
+      const sidebarShowBtn = document.getElementById("sidebarShowBtn");
+      const desktopSidebar = document.getElementById("desktopSidebar");
+
+      if (sidebarHideBtn && desktopSidebar && sidebarShowBtn) {
+        sidebarHideBtn.addEventListener("click", function(){
+          desktopSidebar.classList.add("collapsed");
+          sidebarShowBtn.style.display = "block";
+          sidebarHideBtn.style.display = "none";
+        });
+        sidebarShowBtn.addEventListener("click", function(){
+          desktopSidebar.classList.remove("collapsed");
+          sidebarShowBtn.style.display = "none";
+          sidebarHideBtn.style.display = "block";
+        });
+      }
+    });
+  </script>
+  {% endblock %}
+</body>
+</html>

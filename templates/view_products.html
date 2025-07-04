@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Produtos Importados{% endblock %}
+{% block content %}
+<h2>Produtos Importados</h2>
+{% if products %}
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>Título</th>
+      <th>Marca</th>
+      <th>Preço</th>
+      <th>Link</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for product in products %}
+      <tr>
+        <td>{{ product.title }}</td>
+        <td>{{ product.brand }}</td>
+        <td>{{ product.currency }} {{ product.price }}</td>
+        <td><a href="{{ product.product_link }}" target="_blank">Ver Produto</a></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <p>Nenhum produto importado.</p>
+{% endif %}
+{% endblock %}

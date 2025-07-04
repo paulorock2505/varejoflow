@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Lista de Produtos</h1>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for categoria, mensagem in messages %}
+        <div class="alert alert-{{ categoria }}">{{ mensagem }}</div>
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <table class="table table-bordered">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nome</th>
+        <th>Preço</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for produto in produtos %}
+        <tr>
+          <td>{{ produto.id }}</td>
+          <td>{{ produto.nome }}</td>
+          <td>{{ produto.preco }}</td>
+          <td>
+            <a href="{{ url_for('editar_produto', produto_id=produto.id) }}" class="btn btn-warning btn-sm">Editar</a>
+            <form action="{{ url_for('excluir_produto', produto_id=produto.id) }}" method="POST" style="display:inline;" onsubmit="return confirm('Tem certeza de que deseja excluir este produto?');">
+              <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+            </form>
+          </td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

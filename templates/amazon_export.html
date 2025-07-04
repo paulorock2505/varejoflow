@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}Exportar Resultados{% endblock %}
+
+{% block content %}
+  {# Botão toggle para mobile #}
+  <button id="sidebarToggle"
+          class="btn btn-secondary d-md-none position-fixed bottom-0 end-0 m-3">
+    <i class="bi bi-list"></i>
+  </button>
+
+  <div class="row">
+    {# Formulário principal #}
+    <div class="col-md-9">
+      <div class="card shadow-sm mt-4">
+        <div class="card-header">
+          <h3 class="card-title mb-0">Exportar Resultados</h3>
+        </div>
+        <div class="card-body bg-transparent">
+
+          <form method="post">
+            <div class="row gx-3 gy-3 mb-3">
+              <div class="col-12 col-md-5">
+                <label for="start_date" class="form-label">Data Início</label>
+                <input type="date" id="start_date" name="start_date"
+                       class="form-control"
+                       value="{{ request.form.start_date or '' }}">
+              </div>
+              <div class="col-12 col-md-5">
+                <label for="end_date" class="form-label">Data Fim</label>
+                <input type="date" id="end_date" name="end_date"
+                       class="form-control"
+                       value="{{ request.form.end_date or '' }}">
+              </div>
+            </div>
+
+            <div class="row gx-3 gy-3 mb-4">
+              <div class="col-12 col-md-5">
+                <label for="list_name_filter" class="form-label">Nome da Lista</label>
+                <select id="list_name_filter" name="list_name_filter"
+                        class="form-select">
+                  <option value="">Todas</option>
+                  {% for lst in product_lists %}
+                    <option value="{{ lst }}"
+                      {% if request.form.list_name_filter == lst %}selected{% endif %}>
+                      {{ lst or "Sem Nome" }}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+            </div>
+
+            <fieldset class="mb-4">
+              <legend class="form-label">Tópicos a incluir</legend>
+              <div class="row g-2">
+                {% set checks = [
+                  ('list_name','Nome da Lista'),
+                  ('created_at','Data da Pesquisa'),
+                  ('title','Title'),
+                  ('brand','Marca do Produto'),
+                  ('currency','Moeda'),
+                  ('price','Preço'),
+                  ('image_url','Imagem'),
+                  ('product_link','Link do Produto'),
+                  ('technical_details','Detalhes Técnicos'),
+                  ('additional_info','Informações Adicionais'),
+                  ('about_item','Sobre este item')
+                ] %}
+                {% for val, label in checks %}
+                  <div class="col-6 col-md-4 col-lg-3">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox"
+                             id="cb_{{ val }}" name="fields" value="{{ val }}"
+                             {% if not request.form or val in request.form.getlist('fields') %}checked{% endif %}>
+                      <label class="form-check-label" for="cb_{{ val }}">
+                        {{ label }}
+                      </label>
+                    </div>
+                  </div>
+                {% endfor %}
+              </div>
+            </fieldset>
+
+            <div class="row">
+              <div class="col-12 col-md-5">
+                <button type="submit" class="btn btn-primary w-100">
+                  Gerar Planilha e Download
+                </button>
+              </div>
+            </div>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+  
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ super() }}
+<script>
+
+
+  function handleResize() {
+    if(window.innerWidth > 768) {
+      sidebarToggle.classList.add("d-none");
+      rightSidebar.classList.add("active");
+    } else {
+      sidebarToggle.classList.remove("d-none");
+      rightSidebar.classList.remove("active");
+    }
+  }
+
+
+  window.addEventListener("resize", handleResize);
+  if (window.innerWidth <= 768) sidebarToggle.classList.remove("d-none");
+</script>
+{% endblock %}

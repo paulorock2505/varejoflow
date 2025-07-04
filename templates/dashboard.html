@@ -1,0 +1,204 @@
+{% extends "base.html" %}
+{% block title %}Dashboard – Índice de Preços por Marca{% endblock %}
+
+{% block content %}
+  <!-- Toggle da sidebar (mobile) -->
+  <button id="sidebarToggle"
+          class="btn btn-secondary d-md-none"
+          type="button"
+          aria-label="Mostrar/ocultar menu">
+    <i class="bi bi-list"></i>
+  </button>
+
+  <div class="row">
+    <!-- Conteúdo principal (col-md-9) -->
+    <div class="col-12 col-md-9">
+      <div class="card shadow-sm mt-4">
+        <div class="card-header">
+          <h3 class="card-title mb-0">Índice de Preços por Marca</h3>
+        </div>
+        <div class="card-body bg-transparent">
+          <!-- filtros originais -->
+          <form id="filtersForm" class="row gx-3 gy-2 mb-4">
+            <div class="col-6 col-sm-4 col-md-2">
+              <label for="dateSelection" class="form-label">Data</label>
+              <input type="date" id="dateSelection" name="date" class="form-control"
+                     value="{{ selected_date|default('') }}">
+            </div>
+            <div class="col-6 col-sm-4 col-md-2">
+              <label for="orderSelection" class="form-label">Ordenar</label>
+              <select id="orderSelection" name="order" class="form-select">
+                <option value="asc"  {% if order=="asc"  %}selected{% endif %}>Ascendente</option>
+                <option value="desc" {% if order=="desc" %}selected{% endif %}>Descendente</option>
+              </select>
+            </div>
+            <div class="col-6 col-sm-4 col-md-2">
+              <label for="listSelection" class="form-label">Lista</label>
+              <select id="listSelection" name="list_name" class="form-select">
+                <option value="">Todas</option>
+                {% for item in available_lists %}
+                  <option value="{{ item }}" {% if item==selected_list %}selected{% endif %}>
+                    {{ item }}
+                  </option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-6 col-sm-4 col-md-2">
+              <label for="brandSelection" class="form-label">Marca</label>
+              <select id="brandSelection" name="brand" class="form-select">
+                <option value="">Todas</option>
+                {% for b in available_brands|default([]) %}
+                  <option value="{{ b }}" {% if b==selected_brand %}selected{% endif %}>{{ b }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-6 col-sm-4 col-md-2">
+              <label for="rankingOrderSelection" class="form-label">Ranking</label>
+              <select id="rankingOrderSelection" name="ranking_order" class="form-select">
+                <option value="desc" {% if ranking_order=="desc" %}selected{% endif %}>Maior→Menor</option>
+                <option value="asc" {% if ranking_order=="asc" %}selected{% endif %}>Menor→Maior</option>
+              </select>
+            </div>
+          </form>
+
+          <!-- grid de gráficos -->
+          <div class="row g-5">
+            <div class="col-12 col-lg-6">
+              <div class="card shadow-sm">
+                <div class="card-body bg-transparent">
+                  <canvas id="barChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-lg-6">
+              <div class="card shadow-sm">
+                <div class="card-body bg-transparent">
+                  <canvas id="lineChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-lg-5">
+              <div class="card shadow-sm">
+                <div class="card-body bg-transparent">
+                  <canvas id="pieChart"></canvas>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-lg-7">
+              <div class="card shadow-sm">
+                <div class="card-body bg-transparent">
+                  <!-- aumenta a altura usando utilitário ratio -->
+                  <div class="ratio" style="--bs-aspect-ratio:45%;">
+                    <canvas id="rankingChart"></canvas>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- fim da grid -->
+        </div>
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block extra_js %}
+{{ super() }}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  // Toggle sidebar herdada
+  const sidebarEl = document.querySelector('.sidebar');
+  if (sidebarEl) {
+    sidebarEl.classList.add('collapse','d-md-block','show');
+  }
+  document.getElementById('sidebarToggle')
+    .addEventListener('click', () => sidebarEl?.classList.toggle('show'));
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) sidebarEl?.classList.add('show');
+  });
+
+  // Filtragem onChange
+  function updateDashboard(){
+    const p = new URLSearchParams(new FormData(
+      document.getElementById('filtersForm')
+    ));
+    window.location.href = `/amazon/dashboard?${p}`;
+  }
+  ['dateSelection','orderSelection',
+   'listSelection','brandSelection','rankingOrderSelection']
+    .forEach(id => document.getElementById(id)
+      .addEventListener('change', updateDashboard)
+    );
+
+  // Dados
+  const data   = {{ chart_data|default([])|tojson }},
+        labels = data.map(x => x.brand),
+        vals   = data.map(x => x.price_index),
+        rnk    = {{ ranking_data|default([])|tojson }};
+
+  // Bar
+  new Chart("barChart", {
+    type: "bar",
+    data:{ labels, datasets:[{ label:"Índice", data:vals,
+      backgroundColor:"rgba(54,162,235,0.5)",
+      borderColor:"rgba(54,162,235,1)", borderWidth:1 }]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      scales:{ y:{ beginAtZero:true } } }
+  });
+
+  // Line
+  new Chart("lineChart", {
+    type:"line",
+    data:{ labels, datasets:[{ label:"Índice", data:vals,
+      fill:false, borderColor:"rgba(255,99,132,1)", tension:0.1 }]},
+    options:{ responsive:true, maintainAspectRatio:false }
+  });
+
+  // Pie
+  new Chart("pieChart", {
+    type:"pie",
+    data:{ labels, datasets:[{ data:vals,
+      backgroundColor:[
+        "rgba(255,99,132,0.5)","rgba(54,162,235,0.5)",
+        "rgba(255,206,86,0.5)","rgba(75,192,192,0.5)",
+        "rgba(153,102,255,0.5)","rgba(255,159,64,0.5)"
+      ] }]},
+    options:{ responsive:true, maintainAspectRatio:false }
+  });
+
+  // Ranking (horizontal)
+  new Chart("rankingChart", {
+    type: "bar",
+    data:{
+      labels: rnk.map(x=>x.title).slice(0,10),
+      datasets:[{ data: rnk.map(x=>x.price_index).slice(0,10),
+        backgroundColor:"rgba(255,99,132,0.5)",
+        borderColor:"rgba(255,99,132,1)", borderWidth:1,
+        barThickness:20, categoryPercentage:0.8
+      }]
+    },
+    options:{
+      indexAxis:"y",
+      responsive:true,
+      maintainAspectRatio:false,
+      scales:{
+        x:{ beginAtZero:true },
+        y:{
+          ticks:{
+            autoSkip:false,
+            maxRotation:0,
+            align:"start",
+            callback:function(val){
+              const lbl = this.getLabelForValue(val);
+              return lbl.length>30
+                ? lbl.substring(0,30)+"…"
+                : lbl;
+            }
+          }
+        }
+      },
+      plugins:{ legend:{ display:false } }
+    }
+  });
+</script>
+{% endblock %}

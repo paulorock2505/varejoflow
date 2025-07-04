@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Login - VarejoFlow{% endblock %}
+
+{% block content %}
+<div class="login-container d-flex justify-content-center align-items-center">
+  <div class="login-card p-4">
+    <h2 class="login-title text-center mb-4">Entre na sua conta</h2>
+    <form method="POST" action="{{ url_for('auth.login') }}">
+      <div class="mb-3">
+        <label for="username" class="form-label">Usuário</label>
+        <input type="text" class="form-control" id="username" name="username" placeholder="Digite seu usuário" required>
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">Senha</label>
+        <input type="password" class="form-control" id="password" name="password" placeholder="Digite sua senha" required>
+      </div>
+      <div class="d-grid">
+        <button type="submit" class="btn btn-primary">Entrar</button>
+      </div>
+    </form>
+    {% if error %}
+      <div class="alert alert-danger mt-3">{{ error }}</div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

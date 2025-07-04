@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Editar Produto{% endblock %}
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <!-- A sidebar já deve estar disponível pelo base.html -->
+    <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-md-4">
+      <h1 class="mt-4">Editar Produto</h1>
+      <form method="POST" action="{{ url_for('amazon.edit_product', product_id=product.id) }}">
+        <div class="form-group">
+          <label for="title"><strong>Título</strong></label>
+          <input type="text" name="title" id="title" class="form-control" value="{{ product.title }}" required>
+        </div>
+        <div class="form-group">
+          <label for="brand"><strong>Marca</strong></label>
+          <input type="text" name="brand" id="brand" class="form-control" value="{{ product.brand }}">
+        </div>
+        <div class="form-group">
+          <label for="price"><strong>Preço</strong></label>
+          <input type="text" name="price" id="price" class="form-control" value="{{ product.price }}" required>
+        </div>
+        <div class="form-group">
+          <label for="technical_details"><strong>Detalhes Técnicos</strong></label>
+          <textarea name="technical_details" id="technical_details" class="form-control" rows="3">{{ product.technical_details }}</textarea>
+        </div>
+        <div class="form-group">
+          <label for="additional_info"><strong>Informações Adicionais</strong></label>
+          <textarea name="additional_info" id="additional_info" class="form-control" rows="3">{{ product.additional_info }}</textarea>
+        </div>
+        <div class="form-group">
+          <label for="about_item"><strong>Sobre este Item</strong></label>
+          <textarea name="about_item" id="about_item" class="form-control" rows="3">{{ product.about_item }}</textarea>
+        </div>
+        <div class="form-group mt-4">
+          <button type="submit" class="btn btn-success">Salvar Alterações</button>
+          <a href="{{ url_for('amazon.list_products') }}" class="btn btn-secondary ml-2">Cancelar</a>
+        </div>
+      </form>
+    </main>
+  </div>
+</div>
+{% endblock %}
