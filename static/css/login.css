@@ -1,0 +1,81 @@
+/* static/css/login.css */
+
+/* Fundo da página para o login: um gradiente sutil */
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 80px); /* ajuste, se necessário, para acomodar header/footer */
+  background: linear-gradient(135deg, #0D1B2A, #1B263B);
+  padding: 20px;
+}
+
+/* Card de login moderno - fundo alterado */
+.login-card {
+  background-color: rgba(240, 240, 240, 0.98); /* fundo modificado para um cinza claro */
+  padding: 40px 30px;
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 400px;
+}
+
+/* Título do card */
+.login-title {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.8rem;
+  color: #0D1B2A; /* azul profundo, que pode ser ajustado conforme sua identidade */
+  font-weight: 700;
+}
+
+/* Agrupamento dos campos */
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Campos de entrada */
+.form-control {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  transition: border-color 0.3s;
+  outline: none;
+}
+
+.form-control:focus {
+  border-color: #D4AF37; /* acento dourado, refletindo a identidade */
+}
+
+/* Botão de login */
+.btn-login {
+  background-color: #0D1B2A;
+  color: #fff;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  width: 100%;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.btn-login:hover {
+  background-color: #D4AF37;
+}
+
+/* Mensagem de alerta */
+.alert {
+  margin-top: 15px;
+  text-align: center;
+}
