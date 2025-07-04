@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Criar Usuário - Painel Administrativo{% endblock %}
+{% block content %}
+<div class="container mt-4">
+  <h2>Criar Novo Usuário</h2>
+  {% if error %}
+    <div class="alert alert-danger">{{ error }}</div>
+  {% endif %}
+  <form method="POST" action="{{ url_for('admin.create_user') }}">
+    <div class="mb-3">
+      <label for="username" class="form-label">Usuário</label>
+      <input type="text" class="form-control" name="username" id="username" placeholder="Digite o nome de usuário" required>
+    </div>
+    <div class="mb-3">
+      <label for="first_name" class="form-label">Primeiro Nome</label>
+      <input type="text" class="form-control" name="first_name" id="first_name" placeholder="Digite o primeiro nome" required>
+    </div>
+    <div class="mb-3">
+      <label for="last_name" class="form-label">Sobrenome</label>
+      <input type="text" class="form-control" name="last_name" id="last_name" placeholder="Digite o sobrenome" required>
+    </div>
+    <div class="mb-3">
+      <label for="phone" class="form-label">Telefone</label>
+      <input type="text" class="form-control" name="phone" id="phone" placeholder="Digite o telefone" required>
+    </div>
+    <div class="mb-3">
+      <label for="document_number" class="form-label">Documento</label>
+      <input type="text" class="form-control" name="document_number" id="document_number" placeholder="Formato xxx.xxx.xxx-xx" required>
+    </div>
+    <div class="mb-3">
+      <label for="password" class="form-label">Senha</label>
+      <input type="password" class="form-control" name="password" id="password" required>
+    </div>
+    <div class="mb-3 form-check">
+      <input type="checkbox" class="form-check-input" name="is_admin" id="is_admin">
+      <label class="form-check-label" for="is_admin">Administrador</label>
+    </div>
+    <button type="submit" class="btn btn-primary">Criar Usuário</button>
+  </form>
+</div>
+{% endblock %}
